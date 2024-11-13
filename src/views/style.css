@@ -1,0 +1,249 @@
+/* Global Styles */
+#connexion {
+    font-family: 'Poppins', sans-serif; /* Belle police moderne */
+    height: 100%;
+    margin: 0;
+    background-image: url('image.webp'); /* URL de votre image de fond */
+    background-size: cover;
+    background-position: center;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Container for the entire app */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.6); /* Overlay to make text readable */
+    border-radius: 12px;
+}
+
+/* Card Style (Main Content Box) */
+.card {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 1.5rem 2rem;  /* Réduit le padding pour que l'intérieur de la carte soit plus petit */
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px; /* Réduit la largeur maximale de la carte */
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Title */
+h2 {
+    font-size: 2.5rem;
+    color: #2575fc;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+}
+
+h4 {
+    color: #2575fc;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Form input fields */
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+}
+
+input:focus, select:focus {
+    border-color: #2575fc;
+    outline: none;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 25px;
+    margin-top: 15px;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #2575fc;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3c8fdd;
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background-color: #e3e3e3;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #ccc;
+    transform: scale(1.05);
+}
+
+.btn-danger {
+    background-color: #f44;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #d33;
+    transform: scale(1.05);
+}
+
+/* Transaction List and Account Info */
+.account-list {
+    list-style: none;
+    padding: 0;
+}
+
+.account-item {
+    background-color: #f9f9f9;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.account-item:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-name {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.account-balance {
+    font-size: 1.1rem;
+    color: #2575fc;
+}
+
+.transaction-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    background-color: #f0f7ff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-item.deposits {
+    background-color: #e3f9e5;
+}
+
+.transaction-item.withdrawals {
+    background-color: #f9e3e3;
+}
+
+.transaction-info {
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Profile Form Styles */
+.user-profile-form {
+    display: none;
+    background-color: #f9f9f9;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.user-profile-form input {
+    margin-bottom: 10px;
+}
+
+.user-profile-form button {
+    background-color: #2575fc;
+    color: white;
+    margin-top: 20px;
+}
+
+.profile-confirmation {
+    color: green;
+    font-weight: bold;
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card {
+        padding: 2rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+    }
+
+    .account-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .account-balance {
+        font-size: 1.3rem;
+    }
+}
+
+
+.notification {
+    display: none;
+    background-color: #ff4d4d;
+    color: white;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+}
