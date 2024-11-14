@@ -9,12 +9,13 @@
     <title>Page d'Accueil - Banque</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="url_for('static', filename='acc.js)"></script>
+    <script src="{{ url_for('static', filename='acc.js') }}"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js"
         integrity="sha512-KFHXdr2oObHKI9w4Hv1XPKc898mE4kgYx58oqsc/JqqdLMDI4YjOLzom+EMlW8HFUd0QfjfAvxSL6sEq/a42fQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
 </head>
 
@@ -55,7 +56,7 @@
                     </div>
                     <div class="col">
                         <h6 class="text-muted mb-1">Solde Total</h6>
-                        <h3 class="mb-0"><span id="total-balance">102 000</span> €</h3>
+                        <h3 class="mb-0"><span id="total-balance">0</span> €</h3>
                     </div>
                 </div>
             </div>
@@ -70,10 +71,6 @@
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#createCompte">
                             <i class="fas fa-plus me-2"></i>Nouveau compte
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#addTransaction">
-                            <i class="fas fa-exchange-alt me-2"></i>Transaction
                         </button>
                     </div>
                 </div>
@@ -123,6 +120,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="account-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label class="form-label">Nom du compte</label>
                             <div class="input-group">
@@ -209,12 +207,13 @@
                 </div>
                 <div class="modal-body">
                     <form id="transaction-form" onsubmit="return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label for="transaction_type" class="form-label">Type de Transaction</label>
                             <select name="transaction_type" class="form-select" id="transaction_type" required>
                                 <option value="">Sélectionnez un type</option>
                                 <option value="depot">Dépot</option>
-                                <option value="retrait">retrait</option>
+                                <option value="retrait">Retrait</option>
                             </select>
                             <span class="text-danger" id="type-error"></span>
 

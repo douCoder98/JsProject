@@ -48,9 +48,16 @@ $(document).ready(function () {
         $.ajax({
             url: 'http://127.0.0.1:5000/account/create/',
             type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false, // Important pour FormData
+            data: JSON.stringify({
+                label: accountLabel,
+                amount: accountAmount,
+                type: accountType,
+                threshold: accountThreshold,
+                user_id: '1'
+            }),
+            contentType: 'application/json',
+            dataType: 'json',
+            
             success: function (response) {
                 // Fermer la modal
                 $('#createCompte').modal('hide');
@@ -103,9 +110,9 @@ $(document).ready(function () {
                                         <h6 class="text-muted mb-0">Solde: ${account.amount} €</h6>
                                     </div>
                                     <div class="btn-group">
-                                        <button class="btn btn-outline-primary show-transactions" data-account-id="${account.id}">
+                                        <a href="/transactions/account/${account.id}/" class="btn btn-outline-primary show-transactions" data-account-id="${account.id}">
                                             <i class="fas fa-history me-2"></i>Historique
-                                        </button>
+                                        </a>
                                         <button onclick="getAccountId(${account.id})" class="btn btn-success new-transaction" data-bs-toggle="modal" data-bs-target="#newTransaction" data-account-id="${account.id}">
                                             <i class="fas fa-plus me-2"></i>Transaction
                                         </button>
@@ -155,7 +162,7 @@ $(document).ready(function () {
 
         if (idAccount) {
             $.ajax({
-                url: `http://127.0.0.1:5000/account/${idAccount}`,
+                url: `/account/${idAccount}`,
                 type: 'DELETE',
                 success: function (response) {
                     // Fermer le modal
@@ -234,9 +241,14 @@ $(document).ready(function () {
                 $.ajax({
                     url: 'http://127.0.0.1:5000/transactions/create/',
                     type: 'POST',
-                    data: formData,
-                    processData: false,  // Important pour FormData
-                    contentType: false,  // Important pour FormData
+                    data: JSON.stringify({
+                        account_id: currentAccountId,
+                        amount: parseFloat($('#transaction_amount').val()),
+                        type: $('#transaction_type').val(),
+                        date: $('#transaction_date').val()
+                    }),
+                    contentType: 'application/json',
+                    dataType: 'json',
                     success: function (response) {
                         // Fermer la modal
                         $('#newTransaction').modal('hide');

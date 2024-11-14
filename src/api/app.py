@@ -47,6 +47,11 @@ def create():
 
     return jsonify(name=user.name, email=user.email, password=user.password), 200
 
+@app.route("/accueil", methods=['GET'])
+def accueil():
+
+    return render_template('accueil.html')
+
 @app.route('/users/list/', methods=['GET'])
 def get_users():
     users = User.query.all()
@@ -93,20 +98,19 @@ def delete_user(user_id):
     return jsonify({"message": "reussi"}), 200
 
 
-
+@csrf.exempt
 @app.route('/account/create/', methods=['POST'])
 def create_account():
     account = Account(
-        label=request.form['label'],
-        amount=request.form['amount'],
-        type=request.form['type'],
-        threshold=request.form['threshold'],
-        user_id=request.form['user_id']
+        label=request.json.get('label'),
+        amount=request.json.get('amount'),
+        type=request.json.get('type'),
+        threshold=request.json.get('threshold'),
+        user_id=request.json.get('user_id')
     )
     db_session.add(account)
     db_session.commit()
     
-
     return jsonify(id=account.id ,label=account.label,amount=account.amount,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
 
 @app.route('/account/list/', methods=['GET'])
@@ -148,7 +152,7 @@ def update_account(account_id):
 
     return jsonify(label=account.label,amount=account.amount,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
 
-    
+@csrf.exempt
 @app.route('/account/<int:account_id>', methods=['DELETE'])
 def delete_account(account_id):
     account = Account.query.get(account_id)
@@ -175,18 +179,24 @@ def get_accounts_by_user_id(user_id):
         } for account in accounts]
     }
 
-
+@csrf.exempt
 @app.route('/transactions/create/', methods=['POST'])
 def create_transaction():
-    account = Account.query.get(int(request.form['account_id']))
+    account = Account.query.get(int(request.json.get('account_id')))
+    amountConv = 0
+    if (request.json.get('type') == 'retrait'):
+        amountConv = amountConv - float(request.json.get('amount'))
+    else:
+        amountConv = amountConv + float(request.json.get('amount'))
         
     transaction = Transaction(
             reference=''.join(random.choice(string.ascii_lowercase) for i in range(8)),
-            type=request.form['type'],
-            amount=float(request.form['amount']), 
-            balance=account.amount + float(request.form['amount']),
-            account_id=int(request.form['account_id'])
+            type=request.json.get('type'),
+            amount=float(request.json.get('amount')), 
+            balance=account.amount + amountConv,
+            account_id=int(request.json.get('account_id'))
         )
+    account.amount = transaction.balance
     db_session.add(transaction)
     db_session.commit()
 
@@ -205,7 +215,7 @@ def get_transactions():
             "balance": trans.balance,
             "account_id":trans.account_id,
             "created_at":trans.created_at,
-            "update_at":trans.updated_at
+            "update_at":trans.updated_at,
 
         } for trans in transactions]
     }
@@ -243,23 +253,25 @@ def delete_transactions(transaction_id):
 
     return jsonify({"message": "reussi"}), 200
 
-@app.route('/transactions/<int:account_id>/account', methods=['GET'])
+@app.route('/transactions/account/<int:account_id>/', methods=['GET'])
 def get_transaction_by_account_id(account_id):
     transactions = Transaction.query.filter_by(account_id=account_id).all()
 
-    return {
-        'data': [{
+    data = [{
             "id": trans.id,
             "reference": trans.reference,
             "amount": trans.amount,
-            "date": trans.date,
+            "account": (Account.query.get(trans.account_id)).label,
+            "type": trans.type,
             "balance": trans.balance,
-            "account_id":trans.account_id,
-            "created_at":trans.created_at,
-            "update_at":trans.updated_at
-
+            "account_id": trans.account_id,
+            "created_at": trans.created_at,
+            "update_at": trans.updated_at
         } for trans in transactions]
-    }
+    
+    print(data)
+
+    return render_template('transaction.html', transactions=data)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -269,8 +281,7 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.password == password:
-        login_user(user)
-        return render_template('accueil.html'), 200
+        return 'true'
     else:
         return jsonify({"message": "Email ou mot de passe incorrect"}), 401
 

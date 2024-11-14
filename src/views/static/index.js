@@ -50,9 +50,7 @@ $("#registerButton").on("click", function () {
         }),
         success: function (response) {
           console.log(response);
-          if (response.status == 200) {
-            window.location.replace("/index.html");
-          }
+            window.location.replace("/");
         },
         error: function (response) {
           console.log(response);
@@ -98,14 +96,13 @@ $("#loginButton").on("click", function () {
         url: "/login",
         type: "POST",
         dataType: "json",
-        data: {
+        contentType: "application/json",
+        data: JSON.stringify( {
           email: $("#email").val(),
           password: $("#password").val(),
-        },
+        }),
         success: function (response) {
-          if (response == true) {
             window.location.replace("/accueil");
-          }
         },
         error: function (response) {
           console.log(response);
