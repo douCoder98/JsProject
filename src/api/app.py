@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import random
 import string
 from database import db_session
@@ -6,12 +6,17 @@ from models.User import User
 from models.Account import Account
 from models.Transaction import Transaction
 from flask_login import LoginManager, UserMixin, login_user, logout_user
+from flask_wtf.csrf import CSRFProtect
+from flask_cors import CORS
 
 
-app = Flask(__name__)
+
+app = Flask(__name__, template_folder='../views', static_folder='../views/static')
 login_manager = LoginManager()
-app.config["SECRET_KEY"] = "2la"
+app.secret_key = "2la"
 login_manager.init_app(app)
+csrf = CSRFProtect(app)
+CORS(app)
  
 
 from database import init_db
@@ -25,14 +30,20 @@ def loader_user(user_id):
     return User.query.get(user_id)
 
 @app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+def index():
+    return render_template('index.html')
 
+@app.route("/register")
+def register():
+    return render_template('register.html')
+
+@csrf.exempt
 @app.route('/users/create/', methods=['POST'])
 def create():
-    user = User(name=request.form['name'], email=request.form['email'], password=request.form['password'])
+    user = User(name=request.json.get('name'), email=request.json.get('email'), password=request.json.get('password'))
     db_session.add(user)
     db_session.commit()
+    print(user)
 
     return jsonify(name=user.name, email=user.email, password=user.password), 200
 
@@ -96,7 +107,7 @@ def create_account():
     db_session.commit()
     
 
-    return jsonify(id=account.id ,label=account.label,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
+    return jsonify(id=account.id ,label=account.label,amount=account.amount,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
 
 @app.route('/account/list/', methods=['GET'])
 def get_accounts():
@@ -106,6 +117,7 @@ def get_accounts():
         'data': [{
             "id":account.id,
             "label":account.label,
+            "amount":account.amount,
             "type":account.type,
             "threshold":account.threshold, 
             "user_id":account.user_id
@@ -116,7 +128,7 @@ def get_accounts():
 def get_account(account_id):
     account=Account.query.get(account_id)
 
-    return jsonify(label=account.label,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
+    return jsonify(label=account.label,amount=account.amount,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
 
 @app.route('/account/<int:account_id>', methods=['PUT'])
 def update_account(account_id):
@@ -134,12 +146,12 @@ def update_account(account_id):
 
     db_session.commit()
 
-    return jsonify(label=account.label,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
+    return jsonify(label=account.label,amount=account.amount,type=account.type,threshold=account.threshold, user_id=account.user_id), 200
 
     
 @app.route('/account/<int:account_id>', methods=['DELETE'])
-def delete_account(user_id):
-    account = account.query.get(user_id)
+def delete_account(account_id):
+    account = Account.query.get(account_id)
 
     db_session.delete(account)
     db_session.commit()
@@ -156,6 +168,7 @@ def get_accounts_by_user_id(user_id):
         'data': [{
             "id":account.id,
             "label":account.label,
+            "amount":account.amount,
             "type":account.type,
             "threshold":account.threshold, 
             "user_id":account.user_id
@@ -165,14 +178,15 @@ def get_accounts_by_user_id(user_id):
 
 @app.route('/transactions/create/', methods=['POST'])
 def create_transaction():
-    account = Account.query.get(request.form['account_id'])
-    
-    transaction = Transaction(reference=''.join(random.choice(string.ascii_lowercase) for i in range(8)),
-                                type=request.form['type'],
-                                amount=request.form['amount'], 
-                                balance=account.amount- float(request.form['amount']),
-                                account_id=request.form['account_id']
-                                )
+    account = Account.query.get(int(request.form['account_id']))
+        
+    transaction = Transaction(
+            reference=''.join(random.choice(string.ascii_lowercase) for i in range(8)),
+            type=request.form['type'],
+            amount=float(request.form['amount']), 
+            balance=account.amount + float(request.form['amount']),
+            account_id=int(request.form['account_id'])
+        )
     db_session.add(transaction)
     db_session.commit()
 
@@ -187,6 +201,7 @@ def get_transactions():
             "id": trans.id,
             "reference": trans.reference,
             "amount": trans.amount,
+            "date": trans.date,
             "balance": trans.balance,
             "account_id":trans.account_id,
             "created_at":trans.created_at,
@@ -199,7 +214,7 @@ def get_transactions():
 def get_transaction(transaction_id):
     transaction = Transaction.query.get(transaction_id)
 
-    return jsonify(reference=transaction.reference, amount=transaction.amount, balance=transaction.balance, account_id=transaction.account_id,created_at=transaction.created_at,update_at=transaction.updated_at), 200
+    return jsonify(reference=transaction.reference, date=transaction.date,amount=transaction.amount, balance=transaction.balance, account_id=transaction.account_id,created_at=transaction.created_at,update_at=transaction.updated_at), 200
 
 @app.route('/transactions/<int:transaction_id>', methods=['PUT'])
 def update_transaction(transaction_id):
@@ -237,6 +252,7 @@ def get_transaction_by_account_id(account_id):
             "id": trans.id,
             "reference": trans.reference,
             "amount": trans.amount,
+            "date": trans.date,
             "balance": trans.balance,
             "account_id":trans.account_id,
             "created_at":trans.created_at,
@@ -247,14 +263,14 @@ def get_transaction_by_account_id(account_id):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    email = request.form.get("email")
-    password = request.form.get("password")
+    email = request.json.get("email")
+    password = request.json.get("password")
 
     user = User.query.filter_by(email=email).first()
 
     if user and user.password == password:
         login_user(user)
-        return jsonify({"message": "Connexion réussie"}), 200
+        return render_template('accueil.html'), 200
     else:
         return jsonify({"message": "Email ou mot de passe incorrect"}), 401
 

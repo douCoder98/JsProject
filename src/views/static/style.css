@@ -247,3 +247,7 @@ input:focus, select:focus {
     font-weight: bold;
     text-align: center;
 }
+
+form .error {
+    color: red;
+}
