@@ -49,8 +49,14 @@ $("#registerButton").on("click", function () {
           password: $("#password").val(),
         }),
         success: function (response) {
-          console.log(response);
+          if (response == "false") {
+            $("#registerError").removeClass("d-none");
+            $("#registerError").addClass("d-block");
+            $("#registerError").text("Email déjà utilisé.");
+          }
+          if (response == "true") {
             window.location.replace("/");
+          }
         },
         error: function (response) {
           console.log(response);
@@ -97,12 +103,17 @@ $("#loginButton").on("click", function () {
         type: "POST",
         dataType: "json",
         contentType: "application/json",
-        data: JSON.stringify( {
+        data: JSON.stringify({
           email: $("#email").val(),
           password: $("#password").val(),
         }),
         success: function (response) {
+          if (response == "true") {
             window.location.replace("/accueil");
+          }
+          $("#loginError").removeClass("d-none");
+          $("#loginError").addClass("d-block");
+          $("#loginError").text("Email ou mot de passe incorrect.");
         },
         error: function (response) {
           console.log(response);

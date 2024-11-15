@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, flash
 import random
 import string
 from database import db_session
@@ -40,12 +40,17 @@ def register():
 @csrf.exempt
 @app.route('/users/create/', methods=['POST'])
 def create():
+    users = User.query.all()
+    for user in users:
+        if (user.email == request.json.get('email')):
+            return jsonify('false')
+        
     user = User(name=request.json.get('name'), email=request.json.get('email'), password=request.json.get('password'))
     db_session.add(user)
     db_session.commit()
     print(user)
 
-    return jsonify(name=user.name, email=user.email, password=user.password), 200
+    return jsonify('true')
 
 @app.route("/accueil", methods=['GET'])
 def accueil():
@@ -281,11 +286,13 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.password == password:
-        return 'true'
+        login_user(user)
+        return jsonify("true")
     else:
-        return jsonify({"message": "Email ou mot de passe incorrect"}), 401
+        return jsonify("false")
 
 @app.route("/logout")
 def logout():
+    
     logout_user()
     return "logout"

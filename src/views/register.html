@@ -16,7 +16,7 @@
             <div id="form-container">
                 <h5>Création d'un compte</h5>
                 <form id="registerForm">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="mb-3 text-start">
                         <label for="name"></label>
                         <input type="text" class="form-control" id="name" name="name" placeholder="Nom complet">
@@ -30,6 +30,7 @@
                         <input type="password" class="form-control" name="password" id="password"
                             placeholder="Mot de passe (8 caractères minimum)">
                     </div>
+                    <span class="alert alert-danger d-none" id="registerError"></span>
                     <button id="registerButton" hidden>S'inscrire</button>
                 </form>
                 <button class="btn btn-primary" onclick="$('#registerButton').click()">S'inscrire</button>

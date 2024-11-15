@@ -17,15 +17,17 @@
             <div id="form-container">
                 <h5>Connexion</h5>
                 <form id="loginForm" action="">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     <div class="mb-3 text-start">
                         <label for="email"></label>
                         <input type="email" class="form-control" name="email" id="email" placeholder="Email">
                     </div>
                     <div class="mb-3 text-start">
                         <label for="password"></label>
-                        <input type="password" class="form-control" name="password" id="password" placeholder="Mot de passe">
+                        <input type="password" class="form-control" name="password" id="password"
+                            placeholder="Mot de passe">
                     </div>
+                    <span class="alert alert-danger d-none" id="loginError"></span>
                     <button id="loginButton" hidden>Se connecter</button>
                 </form>
                 <button class="btn btn-primary" onclick="$('#loginButton').click()">Se connecter</button>
