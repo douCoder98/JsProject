@@ -14,12 +14,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.now())
     updated_at = Column(DateTime, onupdate=datetime.datetime.now(), default=datetime.datetime.now())
 
-    def __init__(self, name=None, email=None, password=None, is_authenticated=None, is_active=None, is_anonymous=None):
+    def __init__(self, name: str = None, email: str = None, password: str = None):
         self.name = name
         self.email = email
-        self.is_authenticated = is_authenticated
-        self.is_active = is_active
-        self.is_anonymous = is_anonymous
         self.password = password
 
     def get_id(self):

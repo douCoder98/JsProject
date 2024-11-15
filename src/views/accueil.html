@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js"
         integrity="sha512-KFHXdr2oObHKI9w4Hv1XPKc898mE4kgYx58oqsc/JqqdLMDI4YjOLzom+EMlW8HFUd0QfjfAvxSL6sEq/a42fQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
 </head>
 
@@ -35,9 +35,11 @@
                     <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modifyProfil">
                         <i class="fas fa-user me-2"></i>Mon profil
                     </button>
-                    <button class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt me-2"></i>Se déconnecter
-                    </button>
+                    <a href="/logout">
+                        <button class="btn btn-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Se déconnecter
+                        </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -120,7 +122,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="account-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
                             <label class="form-label">Nom du compte</label>
                             <div class="input-group">
@@ -207,7 +209,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="transaction-form" onsubmit="return false;">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
                             <label for="transaction_type" class="form-label">Type de Transaction</label>
                             <select name="transaction_type" class="form-select" id="transaction_type" required>
@@ -222,19 +224,20 @@
                             <label for="transaction_amount" class="form-label">Montant</label>
                             <input name="transaction_amount" type="number" class="form-control" id="transaction_amount"
                                 required>
-                                <span class="text-danger" id="amount-error"></span>
+                            <span class="text-danger" id="amount-error"></span>
                         </div>
                         <div class="mb-3">
                             <label for="transaction_date" class="form-label">Date de Transaction</label>
                             <input name="transaction_date" type="date" class="form-control" id="transaction_date"
                                 required>
-                                <span class="text-danger" id="date-error"></span>
+                            <span class="text-danger" id="date-error"></span>
                         </div>
                         <button id="btnSubmitTrans" hidden></button>
                     </form>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Annuler</button>
-                        <button id="submit-transaction" onclick="$('#btnSubmitTrans').click();" class="btn btn-primary">Ajouter </button>
+                        <button id="submit-transaction" onclick="$('#btnSubmitTrans').click();"
+                            class="btn btn-primary">Ajouter </button>
                         <span id="form-message" class="text-danger"></span>
                     </div>
                 </div>
@@ -299,9 +302,10 @@
         .progress-bar {
             border-radius: 10px;
         }
+
         form .error {
-        color: red;
-    }
+            color: red;
+        }
     </style>
 </body>
 

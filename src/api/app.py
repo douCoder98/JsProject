@@ -291,8 +291,7 @@ def login():
     else:
         return jsonify("false")
 
-@app.route("/logout")
+@app.route("/logout", methods=['GET'])
 def logout():
-    
     logout_user()
-    return "logout"
+    return render_template('index.html')
