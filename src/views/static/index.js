@@ -110,10 +110,11 @@ $("#loginButton").on("click", function () {
         success: function (response) {
           if (response == "true") {
             window.location.replace("/accueil");
+          } else {
+            $("#loginError").removeClass("d-none");
+            $("#loginError").addClass("d-block");
+            $("#loginError").text("Email ou mot de passe incorrect.");
           }
-          $("#loginError").removeClass("d-none");
-          $("#loginError").addClass("d-block");
-          $("#loginError").text("Email ou mot de passe incorrect.");
         },
         error: function (response) {
           console.log(response);
