@@ -2,7 +2,7 @@
 
 ## Membre
 - PaPa ABDOU
-- Liticia
+- Liticia AMANI
 - Leandra MAKAMTE 
 
 
