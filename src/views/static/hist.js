@@ -1,12 +1,12 @@
-// hist.js
 const userId = localStorage.getItem('userId');
 let history;
 
-$(document).ready(function() {
-    // Call loadConnections when the page loads
+$(document).ready(function () {
+    $("#current-user-name").text(localStorage.getItem("userName"));
+
     loadConnections();
 
-    // Initialize any Bootstrap tooltips
+    // initialisation des tooltips
     $('[data-bs-toggle="tooltip"]').tooltip();
 });
 
@@ -19,7 +19,7 @@ function loadConnections() {
     $.ajax({
         url: `/connection_history/${userId}`,
         method: 'GET',
-        success: function(response) {
+        success: function (response) {
             if (response && response.data) {
                 history = response.data;
                 displayConnections(history);
@@ -27,7 +27,7 @@ function loadConnections() {
                 console.error('Invalid response format:', response);
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error fetching connection history:', error);
             $('#connectionsTableBody').html(
                 '<tr><td colspan="3" class="text-center text-danger">' +
@@ -42,11 +42,14 @@ function displayConnections(connections) {
     tableBody.empty();
 
     if (connections && connections.length > 0) {
-        connections.forEach(function(connection) {
+        connections.forEach(function (connection) {
             const statusClass = connection.status === 'success' ? 'text-success' : 'text-danger';
-            const statusIcon = connection.status === 'success' ? 
-                '<i class="fas fa-check-circle"></i>' : 
+            const statusIcon = connection.status === 'success' ?
+                '<i class="fas fa-check-circle"></i>' :
                 '<i class="fas fa-times-circle"></i>';
+            const suspectClass = !connection.suspected? 'text-success' : 'text-danger';
+            const suspect = !connection.suspected ? 'Non suspect' : 'Suspect';
+
 
             const row = `
                 <tr>
@@ -54,6 +57,9 @@ function displayConnections(connections) {
                     <td>${connection.ip_address}</td>
                     <td class="${statusClass}">
                         ${statusIcon} ${connection.status}
+                    </td>
+                    <td class="${suspectClass}">
+                         ${suspect}
                     </td>
                 </tr>
             `;

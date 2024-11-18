@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from database import Base
 from datetime import datetime
 class Connection(Base):
@@ -9,3 +9,4 @@ class Connection(Base):
     ip_address = Column(String(50))
     connection_date = Column(DateTime, default=datetime.now())
     status = Column(String(20))  
+    suspected = Column(Boolean, default=False)

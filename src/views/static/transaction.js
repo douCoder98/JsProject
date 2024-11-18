@@ -1,5 +1,6 @@
 $(document).ready(function () {
-    
+    $("#current-user-name").text(localStorage.getItem("userName"));
+
     let allTransactions = [];
 
     // Fonction pour charger les transactions

@@ -109,10 +109,12 @@ $("#loginButton").on("click", function () {
         }),
         success: function (response) {
           if (response.success) {
-            currentUserId = response.data.user_id;
-            currentUserName = response.data.username;
-            localStorage.setItem('userId', currentUserId);
-            localStorage.setItem('userName', currentUserName);
+           
+            
+            localStorage.setItem('userId',  response.data.user_id);
+            localStorage.setItem('userName', response.data.username);
+            if (response.data.warning_message){
+              localStorage.setItem('warning', response.data.warning_message);}
             window.location.replace("/accueil");
           } else {
             $("#loginError").removeClass("d-none");

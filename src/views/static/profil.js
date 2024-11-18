@@ -55,14 +55,14 @@ $(document).ready(function () {
                 localStorage.setItem('userName', response.name);
                 
                 // Afficher le message de confirmation
-                $('#profile-confirmation')
-                    .removeClass('d-none')
-                    .html("<div class='alert alert-success'>Votre profil a bien été modifié.</div>");
+                $('#profile-confirmation').html("Modifications enregistrées avec succès!<br> Redirection en cours...");
+                $('#profile-confirmation').removeClass('d-none');
+                    
 
                 // Recharger la page après un délai
                 setTimeout(function () {
                     location.reload();
-                }, 1500);
+                }, 2000);
             },
             error: function (xhr, status, error) {
                 alert("Une erreur est survenue lors de la modification du profil : " + error);

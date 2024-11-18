@@ -1,28 +1,36 @@
 let currentAccountId;
 let currentUserId = localStorage.getItem("userId");
-
 function getAccountId(id) {
     currentAccountId = id;
 }
-//creation de compte
+let warning = localStorage.getItem("warning");
+if (warning) {
+    $('#warning-message').text(warning);
+    $('#warning-message').append("ce message disparaitra dans 10 secondes.");
+    $('#warningModal').removeClass('d-none');
+
+    setTimeout(function () {
+        $('#warningModal').addClass('d-none');
+        localStorage.removeItem("warning");
+    }, 10000);
+}
+
 
 $(document).ready(function () {
     $("#connection-history-link").attr("href", "/get_connection_history/" + currentUserId);
-
     $("#profil-name").text(localStorage.getItem("userName"));
+    $("#current-user-name").text(localStorage.getItem("userName"));
+
+    //creation de compte
     $('#submit-account').click(function () {
 
         $('.text-danger').text('');
         $('#form-message').text('');
-
-
         const accountLabel = $('#account-label').val().trim();
         const accountAmount = $('#account-amount').val();
         const accountType = $('#account-type').val();
         const accountThreshold = $('#account-threshold').val();
-
         let isValid = true;
-
 
         if (!accountLabel) {
             $('#label-error').text("Le nom du compte est requis.");
@@ -40,7 +48,7 @@ $(document).ready(function () {
             $('#threshold-error').text("Veuillez entrer un seuil de criticité positif.");
             isValid = false;
         }
-        if (accountAmount < accountThreshold) {
+        if ($('#account-amount').val()< $('#account-threshold').val()) {
             $('#threshold-error').text("Le seuil de criticité doit être inférieur au solde du compte.");
             isValid = false;
         }
@@ -63,11 +71,15 @@ $(document).ready(function () {
             }),
             contentType: 'application/json',
             dataType: 'json',
-
             success: function (response) {
-
                 // Rafraîchir la page
-                location.reload();
+                $('#createCompte').modal('hide');
+                $('#success-message').text("Le compte a été créé avec succès !").removeClass('d-none');
+                setTimeout(function () {
+                    $('#success-message').addClass('d-none');
+                    // Rafraîchir la page
+                    location.reload();
+                }, 3000);
             },
             error: function (xhr, status, error) {
                 alert("Une erreur est survenue lors de l'ajout du compte : " + error);
@@ -78,7 +90,6 @@ $(document).ready(function () {
 
 
     // AFFIGAGE DES COMPTES
-
     const userId = localStorage.getItem('userId');
     function getAccounts() {
         $.ajax({
@@ -103,7 +114,13 @@ $(document).ready(function () {
                                             ${account.label} (${account.type})
                                         </h5>
                                         <span id="idAccount" style="display: none;">${account.id}</span>
-                                        <h6 class="text-muted mb-0">Solde: ${account.amount} €</h6>
+                                        <h6 class="text-muted mb-0">
+                                            <span class="balance" style="color: ${account.amount < account.threshold ? 'red' : 'black'}"> Solde: ${account.amount} €</span>
+                                        </h6>
+                                        <!-- Display threshold value and color it red if the balance is below threshold -->
+                                        <small  style="color: ${account.amount < account.threshold ? 'red' : 'black'}">
+                                            Seuil: ${account.threshold} €
+                                        </small>
                                     </div>
                                     <div class="btn-group">
                                         <a href="/transactions/${account.id}/" class="btn btn-outline-primary show-transactions" data-account-id="${account.id}">
@@ -119,6 +136,7 @@ $(document).ready(function () {
                                 </div>
                             </div>
                         </div>
+
                     `;
                     // Ajouter l'élément au DOM
                     $('#accounts-list').append(accountElement);
@@ -263,29 +281,27 @@ $(document).ready(function () {
 
                         // Réinitialiser le formulaire
                         $('#transaction-form')[0].reset();
-                        $('#warning-message').text(response.warning_message);
+                        if (response.warning_message) {
+                            $('#warning-message').text(response.warning_message);
+                            $('#warning-message').append("ce message sera affiché pendant 10 secondes.");
+                            const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
 
-                        // Créer une instance du modal
-                        const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
 
+                            warningModal.show();
 
-                        warningModal.show();
-
+                            setTimeout(function () {
+                                warningModal.hide();
+                            }, 10000);
+                        }
+                        $('#success-message').text("Le compte a été créé avec succès !").removeClass('d-none');
                         setTimeout(function () {
-                            warningModal.hide();
-                        }, 10000);
-
-                        // Événement qui se déclenche quand le modal est complètement caché
-                        $('#warningModal').on('hidden.bs.modal', function () {
-
-
+                            $('#success-message').addClass('d-none');
                             // Rafraîchir la page
                             location.reload();
-                            if (response.warning_message) {
-                                $('#message_alert').text(response.warning_message)
-                                $('#message_alert').removeClass('d-none');
-                            }
-                        });
+                        }, 3000);
+
+                        // Événement qui se déclenche quand le modal est complètement caché
+                        
                     },
                     error: function (xhr, status, error) {
                         console.error('Erreur:', error);
