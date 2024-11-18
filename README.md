@@ -74,5 +74,6 @@
 
 
  - Nb : la creation de compte peut parraitre figer (n'hesitez pas a effacé les champs  d'actuliser et de recommecer)
+ - vous pouvez nous contacter en cas de soucis 
  
 
