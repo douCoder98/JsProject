@@ -1,4 +1,15 @@
+let currentAccountId;
+let currentUserId = localStorage.getItem("userId");
+
+function getAccountId(id) {
+    currentAccountId = id;
+}
+//creation de compte
+
 $(document).ready(function () {
+    $("#connection-history-link").attr("href", "/get_connection_history/" + currentUserId);
+
+    $("#profil-name").text(localStorage.getItem("userName"));
     $('#submit-account').click(function () {
 
         $('.text-danger').text('');
@@ -18,7 +29,7 @@ $(document).ready(function () {
             isValid = false;
         }
         if (!accountAmount || accountAmount <= 0) {
-            $('#amount-error').text("Veuillez entrer un solde positif.");
+            $('#solde-error').text("Veuillez entrer un solde positif.");
             isValid = false;
         }
         if (!accountType) {
@@ -29,22 +40,17 @@ $(document).ready(function () {
             $('#threshold-error').text("Veuillez entrer un seuil de criticité positif.");
             isValid = false;
         }
-
+        if (accountAmount < accountThreshold) {
+            $('#threshold-error').text("Le seuil de criticité doit être inférieur au solde du compte.");
+            isValid = false;
+        }
 
         if (!isValid) {
             $('#form-message').text("Veuillez corriger les erreurs dans le formulaire.").addClass("text-danger");
             return;
         }
 
-
-        const formData = new FormData();
-        formData.append('label', accountLabel);
-        formData.append('amount', accountAmount);
-        formData.append('type', accountType);
-        formData.append('threshold', accountThreshold);
-        formData.append('user_id', '1');
-
-        // Send AJAX request using jQuery
+        // Envoi de la requête avec AJAX
         $.ajax({
             url: 'http://127.0.0.1:5000/account/create/',
             type: 'POST',
@@ -53,17 +59,12 @@ $(document).ready(function () {
                 amount: accountAmount,
                 type: accountType,
                 threshold: accountThreshold,
-                user_id: '1'
+                user_id: localStorage.getItem('userId')
             }),
             contentType: 'application/json',
             dataType: 'json',
-            
-            success: function (response) {
-                // Fermer la modal
-                $('#createCompte').modal('hide');
 
-                // Réinitialiser le formulaire
-                $('#createCompte form')[0].reset();
+            success: function (response) {
 
                 // Rafraîchir la page
                 location.reload();
@@ -73,21 +74,17 @@ $(document).ready(function () {
             }
         });
     });
-});
 
 
-// AFFIGAGE DES COMPTES
-$(document).ready(function () {
-    const userId = 1; // Remplacer par l'ID réel de l'utilisateur connecté
 
-    // Fonction pour récupérer les comptes depuis le serveur
+    // AFFIGAGE DES COMPTES
+
+    const userId = localStorage.getItem('userId');
     function getAccounts() {
         $.ajax({
-            url: `http://127.0.0.1:5000/account/${userId}/user`, // Remplacez par l'URL correcte
+            url: `http://127.0.0.1:5000/account/${userId}/user`,
             type: 'GET',
             success: function (response) {
-                // Réinitialiser la liste des comptes
-                $('#accounts-list').empty();
 
                 let totalBalance = 0;
                 if (response.data.length === 0) {
@@ -96,7 +93,6 @@ $(document).ready(function () {
 
                 // Parcourir les comptes récupérés et les afficher
                 response.data.forEach(function (account) {
-                    // Créer un élément pour chaque compte    
                     const accountElement = `
                         <div class="account-item card border-0 shadow-sm mb-3 hover-shadow">
                             <div class="card-body">
@@ -110,10 +106,10 @@ $(document).ready(function () {
                                         <h6 class="text-muted mb-0">Solde: ${account.amount} €</h6>
                                     </div>
                                     <div class="btn-group">
-                                        <a href="/transactions/account/${account.id}/" class="btn btn-outline-primary show-transactions" data-account-id="${account.id}">
+                                        <a href="/transactions/${account.id}/" class="btn btn-outline-primary show-transactions" data-account-id="${account.id}">
                                             <i class="fas fa-history me-2"></i>Historique
                                         </a>
-                                        <button onclick="getAccountId(${account.id})" class="btn btn-success new-transaction" data-bs-toggle="modal" data-bs-target="#newTransaction" data-account-id="${account.id}">
+                                        <button onclick="getAccountId(${account.id})" id="modalTransaction" class="btn btn-success new-transaction" data-bs-toggle="modal" data-bs-target="#newTransaction" data-account-id="${account.id}">
                                             <i class="fas fa-plus me-2"></i>Transaction
                                         </button>
                                         <button class="btn btn-outline-danger" id="delete-account" data-bs-toggle="modal" data-bs-target="#suppCompte">
@@ -139,20 +135,18 @@ $(document).ready(function () {
             }
         });
     }
-
-    // Appeler la fonction pour obtenir les comptes au chargement de la page
     getAccounts();
-});
 
 
-/// supression de compte
-$(document).ready(function () {
-    // Utiliser la délégation d'événements pour gérer les boutons de suppression
+
+
+
+
+    /// supression de compte
+
     $('#accounts-list').on('click', '#delete-account', function () {
-        // Trouver l'ID du compte dans le parent le plus proche
         const idAccount = $(this).closest('.account-item').find('#idAccount').text();
-        console.log(idAccount);
-        // Stocker l'ID dans un attribut data du modal pour le récupérer plus tard
+
         $('#suppCompte').data('accountId', idAccount);
     });
 
@@ -165,8 +159,6 @@ $(document).ready(function () {
                 url: `/account/${idAccount}`,
                 type: 'DELETE',
                 success: function (response) {
-                    // Fermer le modal
-                    $('#suppCompte').modal('hide');
 
                     // Rafraîchir la page
                     location.reload();
@@ -174,34 +166,49 @@ $(document).ready(function () {
                 error: function (xhr, status, error) {
                     // Afficher une erreur plus détaillée
                     const errorMessage = xhr.responseJSON?.message || error;
-                    alert("Erreur lors de la suppression du compte : " + errorMessage);
+                    console.error("Erreur lors de la suppression du compte : " + errorMessage);
                 }
             });
         } else {
             alert("Erreur : ID du compte non trouvé");
         }
     });
-});
 
-// TRANSACTION
-// TRANSACTION
-let currentAccountId;
 
-function getAccountId(id) {
-    currentAccountId = id;
-}
 
-$(document).ready(function () {
-    // Écouter les modifications du type de transaction
-    $('#transaction_type').change(function () {
-        const transactionType = $(this).val();
-        const amountField = $('#transaction_amount');
+    // ajout de TRANSACTION
 
-        // Forcer un montant négatif si "Débit" est sélectionné
-        if (transactionType === 'debit' && amountField.val() > 0) {
-            amountField.val(-Math.abs(amountField.val()));
-        } else if (transactionType === 'credit' && amountField.val() < 0) {
-            amountField.val(Math.abs(amountField.val()));
+    const today = new Date().toISOString().split('T')[0]; // la date actuelle 
+    $('#transaction_date').attr('max', today);
+
+    let solde = 0;
+
+    // Fonction pour obtenir le solde du compte actuel
+    function getSolde(accountId) {
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: `http://127.0.0.1:5000/account/${accountId}`,
+                type: 'GET',
+                success: function (response) {
+                    solde = response.amount;
+                    resolve(solde);// permet de retourner la valeur de solde
+                },
+                error: function (xhr, status, error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+
+    $('#newTransaction').on('show.bs.modal', async function (e) {
+        try {
+            const accountId = $(e.relatedTarget).data('account-id');
+            await getSolde(accountId);
+
+        } catch (error) {
+            console.error('Erreur lors de la récupération du solde:', error);
         }
     });
 
@@ -231,13 +238,14 @@ $(document).ready(function () {
                 }
             },
             submitHandler: function () {
-                const formData = new FormData();
-                formData.append('account_id', currentAccountId);
-                formData.append('amount', parseFloat($('#transaction_amount').val()));
-                formData.append('type', $('#transaction_type').val());
-               
+                if ($('#transaction_type').val() === 'retrait') {
+                    if (parseFloat($('#transaction_amount').val()) > solde) {
+                        $('#amount-error').text(`Solde insuffisant. Votre solde actuel est de ${solde}€`).show();
+                        return false;
+                    }
+                }
 
-                // Envoi de la transaction via AJAX avec FormData
+                // Envoi de la transaction avec AJAX 
                 $.ajax({
                     url: 'http://127.0.0.1:5000/transactions/create/',
                     type: 'POST',
@@ -252,12 +260,32 @@ $(document).ready(function () {
                     success: function (response) {
                         // Fermer la modal
                         $('#newTransaction').modal('hide');
-                        
+
                         // Réinitialiser le formulaire
                         $('#transaction-form')[0].reset();
-                        
-                        // Rafraîchir la page
-                        location.reload();
+                        $('#warning-message').text(response.warning_message);
+
+                        // Créer une instance du modal
+                        const warningModal = new bootstrap.Modal(document.getElementById('warningModal'));
+
+
+                        warningModal.show();
+
+                        setTimeout(function () {
+                            warningModal.hide();
+                        }, 10000);
+
+                        // Événement qui se déclenche quand le modal est complètement caché
+                        $('#warningModal').on('hidden.bs.modal', function () {
+
+
+                            // Rafraîchir la page
+                            location.reload();
+                            if (response.warning_message) {
+                                $('#message_alert').text(response.warning_message)
+                                $('#message_alert').removeClass('d-none');
+                            }
+                        });
                     },
                     error: function (xhr, status, error) {
                         console.error('Erreur:', error);

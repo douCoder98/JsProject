@@ -108,7 +108,11 @@ $("#loginButton").on("click", function () {
           password: $("#password").val(),
         }),
         success: function (response) {
-          if (response == "true") {
+          if (response.success) {
+            currentUserId = response.data.user_id;
+            currentUserName = response.data.username;
+            localStorage.setItem('userId', currentUserId);
+            localStorage.setItem('userName', currentUserName);
             window.location.replace("/accueil");
           } else {
             $("#loginError").removeClass("d-none");

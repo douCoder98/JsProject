@@ -8,6 +8,9 @@ from models.Transaction import Transaction
 from flask_login import LoginManager, UserMixin, login_user, logout_user
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
+import datetime 
+
+from models.Connection import Connection
 
 
 
@@ -57,6 +60,16 @@ def accueil():
 
     return render_template('accueil.html')
 
+@app.route("/get_connection_history/<int:user_id>/", methods=['GET'])
+def connection_history(user_id):
+
+    return render_template('historique_con.html', user_id=user_id)
+
+@app.route("/transactions/<int:account_id>/", methods=['GET'])
+def transaction(account_id):
+
+    return render_template('transaction.html' , account_id=account_id)
+
 @app.route('/users/list/', methods=['GET'])
 def get_users():
     users = User.query.all()
@@ -77,15 +90,17 @@ def get_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    print(user_id)
     user = User.query.get(user_id)
 
-    data = request.form
+    data = request .json
+
     if 'name' in data :
-        user.name = data['name']
+        user.name = data.get('name')
     if 'email' in data:
-        user.email = data['email']
+        user.email = data.get('email')
     if 'password' in data:
-        user.email = data['password']
+        user.password = data.get('password') 
 
 
     db_session.commit()
@@ -143,7 +158,7 @@ def get_account(account_id):
 def update_account(account_id):
     account = Account.query.get(account_id)
 
-    data = request.form
+    data = request.json
     if 'label' in data :
         account.label = data['label']
     if 'amount' in data:
@@ -189,23 +204,29 @@ def get_accounts_by_user_id(user_id):
 def create_transaction():
     account = Account.query.get(int(request.json.get('account_id')))
     amountConv = 0
+    warning_message = None
     if (request.json.get('type') == 'retrait'):
         amountConv = amountConv - float(request.json.get('amount'))
     else:
         amountConv = amountConv + float(request.json.get('amount'))
         
-    transaction = Transaction(
+    transaction = Transaction( 
             reference=''.join(random.choice(string.ascii_lowercase) for i in range(8)),
             type=request.json.get('type'),
             amount=float(request.json.get('amount')), 
             balance=account.amount + amountConv,
-            account_id=int(request.json.get('account_id'))
+            account_id=int(request.json.get('account_id')),
+            created_at= datetime.datetime.strptime(request.json.get('date'), "%Y-%m-%d")
         )
     account.amount = transaction.balance
     db_session.add(transaction)
     db_session.commit()
+   
+    if transaction.balance <= account.threshold:
+        warning_message = f"Attention : Le solde du compte {account.label} ({transaction.balance}€) est en dessous du seuil critique ({account.threshold}€)"
 
-    return jsonify(reference=transaction.reference, amount=transaction.amount, balance=transaction.balance, account_id=transaction.account_id,created_at=transaction.created_at,update_at=transaction.updated_at), 200
+
+    return jsonify(reference=transaction.reference, amount=transaction.amount, balance=transaction.balance, account_id=transaction.account_id,created_at=transaction.created_at,update_at=transaction.updated_at,warning_message=warning_message), 200
 
 @app.route('/transactions/list/', methods=['GET'])
 def get_transactions():
@@ -257,41 +278,95 @@ def delete_transactions(transaction_id):
     db_session.commit()
 
     return jsonify({"message": "reussi"}), 200
-
+@csrf.exempt
 @app.route('/transactions/account/<int:account_id>/', methods=['GET'])
 def get_transaction_by_account_id(account_id):
     transactions = Transaction.query.filter_by(account_id=account_id).all()
-
-    data = [{
+    account = Account.query.get(account_id)
+    data_trans = [{
             "id": trans.id,
             "reference": trans.reference,
             "amount": trans.amount,
-            "account": (Account.query.get(trans.account_id)).label,
+            "account": account.label,
             "type": trans.type,
             "balance": trans.balance,
             "account_id": trans.account_id,
             "created_at": trans.created_at,
             "update_at": trans.updated_at
         } for trans in transactions]
-    
-    print(data)
+    data_account = {
+            "label":account.label,
+            "type":account.type,
+    }
 
-    return render_template('transaction.html', transactions=data)
+    return jsonify({"data":data_trans, "account":data_account}), 200
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     email = request.json.get("email")
     password = request.json.get("password")
+    ip_address = request.remote_addr
 
     user = User.query.filter_by(email=email).first()
-
+    connection = Connection(
+        user_id=user.id if user else None,
+        ip_address= ip_address,
+        status='failed'
+    )
+    connection.status = 'success'
+        
     if user and user.password == password:
         login_user(user)
-        return jsonify("true")
+        if is_suspicious_login(user.id, ip_address):
+            warning_message = "Connexion suspecte détectée depuis une nouvelle adresse IP"
+        else:
+            warning_message = None
+        db_session.add(connection)
+        db_session.commit()
+        return jsonify({"success": True, "data":{"user_id": user.id,"username": user.name}}), 200
     else:
-        return jsonify("false")
+        db_session.add(connection)
+        db_session.commit()
+        return jsonify({"success": False,"data":None}), 401
 
 @app.route("/logout", methods=['GET'])
 def logout():
     logout_user()
     return render_template('index.html')
+
+
+
+@app.route('/connection_history/<int:user_id>', methods=['GET'])
+def get_connection_history(user_id):
+    """Récupère l'historique des connexions d'un utilisateur"""
+    history = Connection.query.filter_by(user_id=user_id)\
+        .order_by(Connection.connection_date.desc())\
+            .all()
+    
+    return {
+        'data': [{
+            'id': elm.id,
+            'connection_date': elm.connection_date.strftime('%Y-%m-%d %H:%M:%S'),
+            'ip_address': elm.ip_address,
+            'status': elm.status
+        } for elm in history]
+    }
+
+
+def is_suspicious_login(user_id, ip_address):
+    """Vérifie si la connexion est suspecte basée sur l'historique"""
+    last_24h = datetime.datetime.now() - datetime.timedelta(hours=24)
+    
+    # Récupère les connexions réussies des dernières 24h
+    recent_connections = Connection.query.filter_by(
+        user_id=user_id,
+        status='success'
+    ).filter(Connection.connection_date >= last_24h).all()
+    
+    # Si c'est la première connexion, ce n'est pas suspect
+    if not recent_connections:
+        return False
+    
+    # Vérifie si l'IP est différente des connexions récentes
+    recent_ips = {conn.ip_address for conn in recent_connections}
+    return ip_address not in recent_ips

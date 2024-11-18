@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page d'Accueil - Banque</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='acc.js') }}"></script>
+    <script src="{{ url_for('static', filename='profil.js') }}"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.21.0/jquery.validate.min.js"
         integrity="sha512-KFHXdr2oObHKI9w4Hv1XPKc898mE4kgYx58oqsc/JqqdLMDI4YjOLzom+EMlW8HFUd0QfjfAvxSL6sEq/a42fQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    </script>
 
 </head>
 
@@ -23,7 +23,7 @@
     <!-- Navbar améliorée -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="/accueil">
                 <i class="fas fa-university me-2"></i>
                 2LA Online
             </a>
@@ -47,6 +47,25 @@
 
     <!-- Section principale avec effet de carte -->
     <div class="container mt-5 pt-5">
+        <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title" id="warningModalLabel">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Attention
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="warning-message" class="mb-0"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Card pour le solde total -->
         <div class="card shadow-sm mb-4 border-0">
             <div class="card-body">
@@ -66,9 +85,18 @@
 
         <div class="row">
             <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Bienvenue,</h5>
+                        <h6 class="card-subtitle mb-2 text-muted" id="profil-name">Nom de l'utilisateur</h6>
+                        <p class="card-text">Nous sommes heureux de vous avoir parmi nous !</p>
+                    </div>
+                </div>
+
                 <!-- En-tête de section -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3><i class="fas fa-credit-card me-2"></i>Mes Comptes Bancaires</h3>
+                    <h6><span id="profil-name"></span></h6>
                     <div class="btn-group">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#createCompte">
@@ -85,6 +113,9 @@
 
             <!-- Colonne de droite pour les statistiques -->
             <div class="col-md-4">
+                <a id="connection-history-link" class="btn btn-outline-primary w-100 mb-4">
+                    <i class="fas fa-history me-2"></i>Historique de connection
+                </a>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title mb-4">
@@ -109,7 +140,7 @@
         </div>
     </div>
 
-    <!-- Modal create account amélioré -->
+    <!-- Modal create account  -->
     <div class="modal fade" id="createCompte" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -124,47 +155,27 @@
                     <form id="account-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
-                            <label class="form-label">Nom du compte</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-pen"></i>
-                                </span>
-                                <input type="text" class="form-control" id="account-label" required>
-                            </div>
+                            <label for="account-label" class="form-label">Nom du compte</label>
+                            <input type="text" class="form-control" id="account-label" required>
                             <span class="text-danger" id="label-error"></span>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Solde</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-pen"></i>
-                                </span>
-                                <input type="number" class="form-control" id="account-amount" required>
-                            </div>
+                            <label for="account-amount" class="form-label">Solde</label>
+                            <input type="number" class="form-control" id="account-amount" required>
                             <span class="text-danger" id="solde-error"></span>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Type de compte</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-list"></i>
-                                </span>
-                                <select class="form-select" id="account-type">
-                                    <option value="courant">Courant</option>
-                                    <option value="epargne">Épargne</option>
-                                    <option value="investissement">investissement</option>
-                                </select>
-                            </div>
+                            <label for="account-type" class="form-label">Type de compte</label>
+                            <select class="form-select" id="account-type">
+                                <option value="courant">Courant</option>
+                                <option value="epargne">Épargne</option>
+                                <option value="investissement">investissement</option>
+                            </select>
                             <span class="text-danger" id="type-error"></span>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">seuil de criticité</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-pen"></i>
-                                </span>
-                                <input type="number" class="form-control" id="account-threshold" required>
-                            </div>
+                            <label for="account-threshold" class="form-label">seuil de criticité</label>
+                            <input type="number" class="form-control" id="account-threshold" required>
                             <span class="text-danger" id="threshold-error"></span>
                         </div>
                     </form>
@@ -208,7 +219,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="transaction-form" onsubmit="return false;">
+                    <form id="transaction-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
                             <label for="transaction_type" class="form-label">Type de Transaction</label>
@@ -228,7 +239,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="transaction_date" class="form-label">Date de Transaction</label>
-                            <input name="transaction_date" type="date" class="form-control" id="transaction_date"
+                            <input name="transaction_date" type="date" max="" class="form-control" id="transaction_date"
                                 required>
                             <span class="text-danger" id="date-error"></span>
                         </div>
@@ -253,19 +264,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="profile-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
                         <div class="mb-3">
                             <label for="user-name" class="form-label">Nom</label>
-                            <input type="text" class="form-control" id="user-name" value="" required>
+                            <input type="text" class="form-control" id="user-name" name="user_name" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="user-email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="user-email" value="" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary" hidden>Enregistrer les modifications</button>
-                        <button type="button" id="closeModifyProfil" class="btn btn-secondary" data-bs-dismiss="modal"
-                            hidden>Annuler</button>
+                        <button id="btnSubmitModif" hidden></button>
+
                     </form>
+                    <button type="submit" class="btn btn-primary" hidden>Enregistrer les modifications</button>
+                    <button type="button" id="closeModifyProfil" class="btn btn-secondary" data-bs-dismiss="modal"
+                        hidden>Annuler</button>
                     <div id="profile-confirmation" class="mt-3" style="display: none; color: green;">
                         <strong>Modifications enregistrées avec succès !</strong>
                     </div>
@@ -273,7 +284,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger"
                         onclick="$('#closeModifyProfil').click()">Annuler</button>
-                    <button type="button" class="btn btn-secondary">Enregistrer les modifications</button>
+                    <button id="profile-save" onclick="$('#btnSubmitModif').click();" type="button"
+                        class="btn btn-primary">Enregistrer les modifications</button>
                 </div>
                 <div id="profile-confirmation" class="mt-3" style="display: none; color: green;">
                     <strong>Modifications enregistrées avec succès !</strong>
@@ -283,7 +295,6 @@
     </div>
 
 
-    <!-- Style CSS personnalisé -->
     <style>
         .hover-shadow:hover {
             transform: translateY(-2px);
